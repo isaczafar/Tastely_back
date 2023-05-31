@@ -1,13 +1,11 @@
 import express, { Request, Response } from "express"
 import { Database } from "./database"
-import express from 'express';
-import { Database } from './database';
-import { Recipe } from '../models/Recipe';
-import dotenv from 'dotenv';
-import { Sequelize, ModelCtor } from 'sequelize';
-import cors from 'cors';
+import { Recipe } from "../models/Recipe"
+import dotenv from "dotenv"
+import { Sequelize, ModelCtor } from "sequelize"
+import cors from "cors"
 
-dotenv.config();
+dotenv.config()
 
 const app = express()
 const port = process.env.PORT || 8080
@@ -29,32 +27,30 @@ app.post("/signup", async (req: Request, res: Response) => {
 
   res.json({ success: true })
 })
-const database = new Database();
-(async () => await database.connect())();
 
 const sequelize = new Sequelize(process.env.DATABASEURL!, {
-  dialect: 'postgres',
+  dialect: "postgres",
   ssl: true,
-});
+})
 
-app.use(express.json());
-app.use(cors());
+app.use(express.json())
+app.use(cors())
 
-app.get('/', async (req, res) => {
-  res.send('Hello, World!');
-});
+app.get("/", async (req, res) => {
+  res.send("Hello, World!")
+})
 
-app.get('/recipes', async (req, res) => {
+app.get("/recipes", async (req, res) => {
   try {
-    const recipes = await Recipe.findAll();
-    res.json(recipes);
+    const recipes = await Recipe.findAll()
+    res.json(recipes)
   } catch (error) {
-    console.error(error);
-    res.status(500).json({ error: 'Internal server error' });
+    console.error(error)
+    res.status(500).json({ error: "Internal server error" })
   }
-});
+})
 
-app.post('/recipes', async (req, res) => {
+app.post("/recipes", async (req, res) => {
   try {
     const {
       name,
@@ -65,7 +61,7 @@ app.post('/recipes', async (req, res) => {
       servings,
       image,
       creator,
-    } = req.body;
+    } = req.body
 
     const recipe = await Recipe.create({
       name,
@@ -76,30 +72,30 @@ app.post('/recipes', async (req, res) => {
       servings,
       image,
       creator,
-    });
+    })
 
-    res.json(recipe);
+    res.json(recipe)
   } catch (error) {
-    console.error(error);
-    res.status(500).json({ error: 'Internal server error' });
+    console.error(error)
+    res.status(500).json({ error: "Internal server error" })
   }
-});
+})
 
-app.get('/recipes/:id', async (req, res) => {
+app.get("/recipes/:id", async (req, res) => {
   try {
-    const recipeId = req.params.id;
-    const recipe = await Recipe.findByPk(recipeId);
+    const recipeId = req.params.id
+    const recipe = await Recipe.findByPk(recipeId)
 
     if (!recipe) {
-      res.status(404).json({ error: 'Recipe not found' });
+      res.status(404).json({ error: "Recipe not found" })
     } else {
-      res.json(recipe);
+      res.json(recipe)
     }
   } catch (error) {
-    console.error(error);
-    res.status(500).json({ error: 'Internal server error' });
+    console.error(error)
+    res.status(500).json({ error: "Internal server error" })
   }
-});
+})
 
 app.listen(port, () => {
   console.log(`Server is running on port ${port}`)
@@ -107,5 +103,4 @@ app.listen(port, () => {
 
 const database = new Database()
 database.connect()
-  console.log(`Server is running on port ${port}`);
-});
+console.log(`Server is running on port ${port}`)
