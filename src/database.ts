@@ -1,5 +1,6 @@
 import { Sequelize, Model, DataTypes } from 'sequelize';
 import { Recipe } from '../models/Recipe';
+import { User } from '../models/User';
 
 export class Database {
   private sequelize: Sequelize;
@@ -52,6 +53,33 @@ export class Database {
       {
         sequelize: this.sequelize,
         modelName: 'Recipe',
+      }
+    );
+
+    User.init(
+      {
+        id: {
+          type: DataTypes.INTEGER,
+          autoIncrement: true,
+          primaryKey: true,
+        },
+        name: {
+          type: DataTypes.STRING,
+          allowNull: false,
+        },
+        email: {
+          type: DataTypes.STRING,
+          allowNull: false,
+          unique: true,
+        },
+        password: {
+          type: DataTypes.STRING,
+          allowNull: false,
+        },
+      },
+      {
+        sequelize: this.sequelize,
+        modelName: 'User',
       }
     );
   }

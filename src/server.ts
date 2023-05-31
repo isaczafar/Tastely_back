@@ -1,8 +1,9 @@
 import express from 'express';
 import { Database } from './database';
 import { Recipe } from '../models/Recipe';
+import { User } from '../models/User'; // Import the User model
 import dotenv from 'dotenv';
-import { Sequelize, ModelCtor } from 'sequelize';
+import { Sequelize } from 'sequelize';
 import cors from 'cors';
 
 dotenv.config();
@@ -76,6 +77,27 @@ app.get('/recipes/:id', async (req, res) => {
     } else {
       res.json(recipe);
     }
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// Register endpoint
+app.post('/register', async (req, res) => {
+  try {
+    const { name, email, password } = req.body;
+
+    // Check if user already exists
+    const existingUser = await User.findOne({ where: { email } });
+    if (existingUser) {
+      return res.status(409).json({ error: 'User already exists' });
+    }
+
+    // Create a new user
+    const user = await User.create({ name, email, password });
+
+    res.json(user);
   } catch (error) {
     console.error(error);
     res.status(500).json({ error: 'Internal server error' });
