@@ -1,6 +1,7 @@
 import { Sequelize, Model, DataTypes } from 'sequelize';
 import { Database } from '../src/database';
 
+
 export class User extends Model {
   public id!: number;
   public name!: string;
@@ -8,8 +9,10 @@ export class User extends Model {
   public password!: string;
 }
 
+
 export function initializeUserModel(database: Database): void {
   const sequelize = database.getSequelizeInstance();
+
 
   User.init(
     {

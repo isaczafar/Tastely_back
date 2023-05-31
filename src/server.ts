@@ -1,35 +1,16 @@
-import express, { Request, Response } from "express"
-import { Database } from "./database"
 import express from 'express';
 import { Database } from './database';
 import { Recipe } from '../models/Recipe';
-import { User } from '../models/User'; // Import the User model
+import { User } from '../models/User';
 import dotenv from 'dotenv';
 import { Sequelize } from 'sequelize';
 import cors from 'cors';
 
 dotenv.config();
 
-const app = express()
-const port = process.env.PORT || 8080
+const app = express();
+const port = process.env.PORT || 8080;
 
-app.use(express.json())
-
-app.get("/", (req, res) => {
-  res.send("Hello, World!")
-})
-
-app.post("/login", async (req: Request, res: Response) => {
-  const { username, password } = req.body
-
-  res.json({ success: true })
-})
-
-app.post("/signup", async (req: Request, res: Response) => {
-  const { username, password } = req.body
-
-  res.json({ success: true })
-})
 const database = new Database();
 (async () => await database.connect())();
 
@@ -102,18 +83,14 @@ app.get('/recipes/:id', async (req, res) => {
   }
 });
 
-// Register endpoint
 app.post('/register', async (req, res) => {
   try {
     const { name, email, password } = req.body;
-
-    // Check if user already exists
     const existingUser = await User.findOne({ where: { email } });
     if (existingUser) {
       return res.status(409).json({ error: 'User already exists' });
     }
 
-    // Create a new user
     const user = await User.create({ name, email, password });
 
     res.json(user);
@@ -123,11 +100,26 @@ app.post('/register', async (req, res) => {
   }
 });
 
-app.listen(port, () => {
-  console.log(`Server is running on port ${port}`)
-})
+app.post('/login', async (req, res) => {
+  try {
+    const { email, password } = req.body;
+    const user = await User.findOne({ where: { email } });
 
-const database = new Database()
-database.connect()
+    if (!user) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+
+    if (user.password !== password) {
+      return res.status(401).json({ error: 'Incorrect password' });
+    }
+
+    res.json({ message: 'Login successful', user });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+app.listen(port, () => {
   console.log(`Server is running on port ${port}`);
 });
