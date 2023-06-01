@@ -7,6 +7,11 @@ export class Recipe extends Model {
   public description!: string;
   public ingredients!: string[];
   public instructions!: string[];
+  public servings!: number;
+  public creator!: {
+    name: string;
+    avatar: string;
+  };
 }
 
 export function initializeRecipeModel(database: Database): void {
@@ -33,6 +38,14 @@ export function initializeRecipeModel(database: Database): void {
       },
       instructions: {
         type: DataTypes.ARRAY(DataTypes.STRING),
+        allowNull: false,
+      },
+      servings: {
+        type: DataTypes.INTEGER,
+        allowNull: false,
+      },
+      creator: {
+        type: DataTypes.JSONB,
         allowNull: false,
       },
     },
