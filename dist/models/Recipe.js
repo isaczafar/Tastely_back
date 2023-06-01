@@ -29,6 +29,14 @@ function initializeRecipeModel(database) {
             type: sequelize_1.DataTypes.ARRAY(sequelize_1.DataTypes.STRING),
             allowNull: false,
         },
+        servings: {
+            type: sequelize_1.DataTypes.INTEGER,
+            allowNull: false,
+        },
+        creator: {
+            type: sequelize_1.DataTypes.JSONB,
+            allowNull: false,
+        },
     }, {
         sequelize,
         modelName: 'Recipe',

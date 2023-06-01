@@ -8,6 +8,7 @@ export class Recipe extends Model {
   public ingredients!: string[];
   public instructions!: string[];
   public servings!: number;
+  public cookTime!: number;
   public creator!: {
     name: string;
     avatar: string;
