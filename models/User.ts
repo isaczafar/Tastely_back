@@ -13,7 +13,6 @@ export class User extends Model {
 export function initializeUserModel(database: Database): void {
   const sequelize = database.getSequelizeInstance();
 
-
   User.init(
     {
       id: {
@@ -39,5 +38,5 @@ export function initializeUserModel(database: Database): void {
       sequelize,
       modelName: 'User',
     }
-  );
+  );  
 }

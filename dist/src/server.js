@@ -24,7 +24,7 @@ app.use((0, cors_1.default)());
 app.get('/', async (req, res) => {
     res.send('Hello, World!');
 });
-app.get('/recipes', async (req, res) => {
+app.get('/recipe', async (req, res) => {
     try {
         const recipes = await Recipe_1.Recipe.findAll();
         res.json(recipes);
@@ -34,7 +34,7 @@ app.get('/recipes', async (req, res) => {
         res.status(500).json({ error: 'Internal server error' });
     }
 });
-app.post('/recipes', async (req, res) => {
+app.post('/recipe', async (req, res) => {
     try {
         const { name, description, ingredients, instructions, cookTime, servings, image, creator, } = req.body;
         const recipe = await Recipe_1.Recipe.create({
@@ -54,7 +54,7 @@ app.post('/recipes', async (req, res) => {
         res.status(500).json({ error: 'Internal server error' });
     }
 });
-app.get('/recipes/:id', async (req, res) => {
+app.get('/recipe/:id', async (req, res) => {
     try {
         const recipeId = req.params.id;
         const recipe = await Recipe_1.Recipe.findByPk(recipeId);

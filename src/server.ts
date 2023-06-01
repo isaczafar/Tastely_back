@@ -26,7 +26,7 @@ app.get('/', async (req, res) => {
   res.send('Hello, World!');
 });
 
-app.get('/recipes', async (req, res) => {
+app.get('/recipe', async (req, res) => {
   try {
     const recipes = await Recipe.findAll();
     res.json(recipes);
@@ -36,7 +36,7 @@ app.get('/recipes', async (req, res) => {
   }
 });
 
-app.post('/recipes', async (req, res) => {
+app.post('/recipe', async (req, res) => {
   try {
     const {
       name,
@@ -67,7 +67,7 @@ app.post('/recipes', async (req, res) => {
   }
 });
 
-app.get('/recipes/:id', async (req, res) => {
+app.get('/recipe/:id', async (req, res) => {
   try {
     const recipeId = req.params.id;
     const recipe = await Recipe.findByPk(recipeId);
@@ -82,6 +82,7 @@ app.get('/recipes/:id', async (req, res) => {
     res.status(500).json({ error: 'Internal server error' });
   }
 });
+
 
 app.post('/register', async (req, res) => {
   try {

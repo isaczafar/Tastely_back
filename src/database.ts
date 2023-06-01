@@ -83,18 +83,6 @@ export class Database {
           type: DataTypes.STRING,
           allowNull: false,
         },
-        servings: {
-          type: DataTypes.INTEGER,
-          allowNull: false,
-        },
-        cookTime: {
-          type: DataTypes.JSONB,
-          allowNull: false,
-        },
-        creator: {
-          type: DataTypes.JSONB,
-          allowNull: false,
-        },
       },
       {
         sequelize: this.sequelize,
