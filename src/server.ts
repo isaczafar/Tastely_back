@@ -36,6 +36,23 @@ app.get('/recipe', async (req, res) => {
   }
 });
 
+app.get('/recipe/:id', async (req, res) => {
+  try {
+    const recipeId = parseInt(req.params.id);
+    const recipe = await Recipe.findByPk(recipeId);
+
+    if (!recipe) {
+      res.status(404).json({ error: 'Recipe not found' });
+    } else {
+      res.json(recipe);
+    }
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+
 app.post('/recipe', async (req, res) => {
   try {
     const {
@@ -66,23 +83,6 @@ app.post('/recipe', async (req, res) => {
     res.status(500).json({ error: 'Internal server error' });
   }
 });
-
-app.get('/recipe/:id', async (req, res) => {
-  try {
-    const recipeId = req.params.id;
-    const recipe = await Recipe.findByPk(recipeId);
-
-    if (!recipe) {
-      res.status(404).json({ error: 'Recipe not found' });
-    } else {
-      res.json(recipe);
-    }
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ error: 'Internal server error' });
-  }
-});
-
 
 app.post('/register', async (req, res) => {
   try {

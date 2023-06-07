@@ -2,26 +2,34 @@ import { Sequelize, Model, DataTypes } from 'sequelize';
 import { Recipe } from '../models/Recipe';
 import { User } from '../models/User';
 
-
 export class Database {
   private sequelize: Sequelize;
 
-
   constructor() {
-    this.sequelize = new Sequelize(process.env.DATABASEURL!, {
+    const url = new URL(process.env.DATABASEURL!);
+    const database = url.pathname.substr(1);
+    const username = url.username;
+    const password = url.password;
+    const host = url.hostname;
+    const port = parseInt(url.port);
+
+    this.sequelize = new Sequelize(database, username, password, {
       dialect: 'postgres',
+      host,
+      port,
+      ssl: true,
+      dialectOptions: {
+        ssl: true,
+      },
     });
   }
-
 
   async connect() {
     try {
       await this.sequelize.authenticate();
       console.log('Connected to the database');
 
-
       this.defineModels();
-
 
       await this.sequelize.sync();
       console.log('Models synced with the database');
@@ -29,7 +37,6 @@ export class Database {
       console.error('Error connecting to the database', error);
     }
   }
-
 
   private defineModels() {
     Recipe.init(
@@ -62,7 +69,6 @@ export class Database {
       }
     );
 
-
     User.init(
       {
         id: {
@@ -90,7 +96,6 @@ export class Database {
       }
     );
   }
-
 
   getSequelizeInstance() {
     return this.sequelize;
