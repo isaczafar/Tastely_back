@@ -1,18 +1,16 @@
 import { Sequelize, Model, DataTypes } from 'sequelize';
 import { Database } from '../src/database';
 
-
 export class User extends Model {
   public id!: number;
   public name!: string;
   public email!: string;
   public password!: string;
+
+  public logout!: () => Promise<void>;
 }
 
-
-export function initializeUserModel(database: Database): void {
-  const sequelize = database.getSequelizeInstance();
-
+export function initializeUserModel(sequelize: Sequelize): void {
   User.init(
     {
       id: {
@@ -38,5 +36,9 @@ export function initializeUserModel(database: Database): void {
       sequelize,
       modelName: 'User',
     }
-  );  
+  );
+
+  User.prototype.logout = async function () {
+    await this.save();
+  };
 }
