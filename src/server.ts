@@ -22,24 +22,22 @@ const sequelize = new Sequelize(process.env.DATABASEURL!, {
 app.use(express.json())
 app.use(cors())
 
-<<<<<<< HEAD
+const authenticateUser = async (
+  req: express.Request,
+  res: express.Response,
+  next: express.NextFunction
+) => {
+  try {
+    next()
+  } catch (error) {
+    console.error(error)
+    res.status(401).json({ error: "Unauthorized" })
+  }
+}
+
 app.get("/", async (req, res) => {
   res.send("Hello, World!")
 })
-=======
-const authenticateUser = async (req: express.Request, res: express.Response, next: express.NextFunction) => {
-  try {
-    next();
-  } catch (error) {
-    console.error(error);
-    res.status(401).json({ error: 'Unauthorized' });
-  }
-};
-
-app.get('/', async (req, res) => {
-  res.send('Hello, World!');
-});
->>>>>>> e05fbe42b9d9f650ce8baa52ec3e8e0158e383e9
 
 app.get("/recipe", async (req, res) => {
   try {
@@ -51,28 +49,23 @@ app.get("/recipe", async (req, res) => {
   }
 })
 
-<<<<<<< HEAD
-app.post("/recipe", async (req, res) => {
-=======
-app.get('/recipe/:id', async (req, res) => {
+app.get("/recipe/:id", async (req, res) => {
   try {
-    const recipeId = parseInt(req.params.id);
-    const recipe = await Recipe.findByPk(recipeId);
+    const recipeId = parseInt(req.params.id)
+    const recipe = await Recipe.findByPk(recipeId)
 
     if (!recipe) {
-      res.status(404).json({ error: 'Recipe not found' });
+      res.status(404).json({ error: "Recipe not found" })
     } else {
-      res.json(recipe);
+      res.json(recipe)
     }
   } catch (error) {
-    console.error(error);
-    res.status(500).json({ error: 'Internal server error' });
+    console.error(error)
+    res.status(500).json({ error: "Internal server error" })
   }
-});
+})
 
-
-app.post('/recipe', authenticateUser, async (req, res) => {
->>>>>>> e05fbe42b9d9f650ce8baa52ec3e8e0158e383e9
+app.post("/recipe", authenticateUser, async (req, res) => {
   try {
     const {
       name,
@@ -103,27 +96,7 @@ app.post('/recipe', authenticateUser, async (req, res) => {
   }
 })
 
-<<<<<<< HEAD
-app.get("/recipe/:id", async (req, res) => {
-  try {
-    const recipeId = req.params.id
-    const recipe = await Recipe.findByPk(recipeId)
-
-    if (!recipe) {
-      res.status(404).json({ error: "Recipe not found" })
-    } else {
-      res.json(recipe)
-    }
-  } catch (error) {
-    console.error(error)
-    res.status(500).json({ error: "Internal server error" })
-  }
-})
-
 app.post("/register", async (req, res) => {
-=======
-app.post('/register', async (req, res) => {
->>>>>>> e05fbe42b9d9f650ce8baa52ec3e8e0158e383e9
   try {
     const { name, email, password } = req.body
     const existingUser = await User.findOne({ where: { email } })
@@ -140,27 +113,22 @@ app.post('/register', async (req, res) => {
   }
 })
 
-<<<<<<< HEAD
-app.post("/login", async (req, res) => {
-=======
-app.post('/logout', authenticateUser, (req, res) => {
-  res.json({ message: 'Logout successful' });
-});
+app.post("/logout", authenticateUser, (req, res) => {
+  res.json({ message: "Logout successful" })
+})
 
-app.get('/check-login-status', authenticateUser, (req, res) => {
+app.get("/check-login-status", authenticateUser, (req, res) => {
   try {
-    const isLoggedIn = req.user !== undefined;
+    const isLoggedIn = req.user !== undefined
 
-    res.json({ isLoggedIn });
+    res.json({ isLoggedIn })
   } catch (error) {
-    console.error('Error checking login status:', error);
-    res.status(500).json({ error: 'Internal server error' });
+    console.error("Error checking login status:", error)
+    res.status(500).json({ error: "Internal server error" })
   }
-});
+})
 
-
-app.post('/login', async (req, res) => {
->>>>>>> e05fbe42b9d9f650ce8baa52ec3e8e0158e383e9
+app.post("/login", async (req, res) => {
   try {
     const { email, password } = req.body
     const user = await User.findOne({ where: { email } })
