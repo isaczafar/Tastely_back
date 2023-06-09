@@ -1,10 +1,21 @@
-import express from "express"
+import express, { Request, Response } from "express"
 import { Database } from "./database"
 import { Recipe } from "../models/Recipe"
 import { User } from "../models/User"
+import { initializeUploadModel, Upload } from "../models/Upload"
 import dotenv from "dotenv"
 import { Sequelize } from "sequelize"
 import cors from "cors"
+import session from "express-session"
+import multer from "multer"
+
+declare module "express-session" {
+  interface Session {
+    user?: {
+      username: string
+    }
+  }
+}
 
 dotenv.config()
 
@@ -12,34 +23,71 @@ const app = express()
 const port = process.env.PORT || 8080
 
 const database = new Database()
-;(async () => await database.connect())()
+
+app.use(express.json())
+
+app.use(
+  session({
+    secret: "your-secret-key",
+    resave: false,
+    saveUninitialized: true,
+  })
+)
+
+app.get("/", (req, res) => {
+  res.send("Hello, World!")
+})
+
+app.post("/login", (req, res) => {
+  const { username, password } = req.body
+
+  req.session.user = { username }
+
+  res.send("Logged in successfully")
+})
+
+app.get("/check-login", (req, res) => {
+  if (req.session.user) {
+    res.send("User is logged in")
+  } else {
+    res.send("User is not logged in")
+  }
+})
+
+app.post("/signup", async (req: Request, res: Response) => {
+  const { username, password } = req.body
+
+  res.json({ success: true })
+})
+
+app.get("/logout", (req, res) => {
+  req.session.destroy((err) => {
+    if (err) {
+      console.error(err)
+      res.status(500).json({ error: "Failed to destroy session" })
+    } else {
+      res.send("Logged out successfully")
+    }
+  })
+})
 
 const sequelize = new Sequelize(process.env.DATABASEURL!, {
   dialect: "postgres",
   ssl: true,
 })
 
+initializeUploadModel(database)
+
+database.connect()
+
 app.use(express.json())
 app.use(cors())
-
-const authenticateUser = async (
-  req: express.Request,
-  res: express.Response,
-  next: express.NextFunction
-) => {
-  try {
-    next()
-  } catch (error) {
-    console.error(error)
-    res.status(401).json({ error: "Unauthorized" })
-  }
-}
 
 app.get("/", async (req, res) => {
   res.send("Hello, World!")
 })
 
-app.get("/recipe", async (req, res) => {
+app.get("/recipes", async (req, res) => {
   try {
     const recipes = await Recipe.findAll()
     res.json(recipes)
@@ -49,23 +97,7 @@ app.get("/recipe", async (req, res) => {
   }
 })
 
-app.get("/recipe/:id", async (req, res) => {
-  try {
-    const recipeId = parseInt(req.params.id)
-    const recipe = await Recipe.findByPk(recipeId)
-
-    if (!recipe) {
-      res.status(404).json({ error: "Recipe not found" })
-    } else {
-      res.json(recipe)
-    }
-  } catch (error) {
-    console.error(error)
-    res.status(500).json({ error: "Internal server error" })
-  }
-})
-
-app.post("/recipe", authenticateUser, async (req, res) => {
+app.post("/recipes", async (req, res) => {
   try {
     const {
       name,
@@ -96,14 +128,34 @@ app.post("/recipe", authenticateUser, async (req, res) => {
   }
 })
 
+app.get("/recipes/:id", async (req, res) => {
+  try {
+    const recipeId = req.params.id
+    const recipe = await Recipe.findByPk(recipeId)
+
+    if (!recipe) {
+      res.status(404).json({ error: "Recipe not found" })
+    } else {
+      res.json(recipe)
+    }
+  } catch (error) {
+    console.error(error)
+    res.status(500).json({ error: "Internal server error" })
+  }
+})
+
+// Register endpoint
 app.post("/register", async (req, res) => {
   try {
     const { name, email, password } = req.body
+
+    // Check if user already exists
     const existingUser = await User.findOne({ where: { email } })
     if (existingUser) {
       return res.status(409).json({ error: "User already exists" })
     }
 
+    // Create a new user
     const user = await User.create({ name, email, password })
 
     res.json(user)
@@ -113,41 +165,32 @@ app.post("/register", async (req, res) => {
   }
 })
 
-app.post("/logout", authenticateUser, (req, res) => {
-  res.json({ message: "Logout successful" })
+const storage = multer.diskStorage({
+  destination: function (req, file, cb) {
+    cb(null, "uploads/")
+  },
+  filename: function (req, file, cb) {
+    cb(null, Date.now() + "-" + file.originalname)
+  },
 })
 
-app.get("/check-login-status", authenticateUser, (req, res) => {
-  try {
-    const isLoggedIn = req.user !== undefined
+const upload = multer({ storage: storage })
 
-    res.json({ isLoggedIn })
-  } catch (error) {
-    console.error("Error checking login status:", error)
-    res.status(500).json({ error: "Internal server error" })
+app.post("/upload", upload.single("file"), (req, res) => {
+  if (!req.file) {
+    return res.status(400).json({ error: "Ingen fil vald" })
   }
-})
 
-app.post("/login", async (req, res) => {
-  try {
-    const { email, password } = req.body
-    const user = await User.findOne({ where: { email } })
+  // Use the Upload model here if needed
+  const uploadInstance = new Upload({ fileName: req.file.filename })
+  uploadInstance.save()
 
-    if (!user) {
-      return res.status(404).json({ error: "User not found" })
-    }
-
-    if (user.password !== password) {
-      return res.status(401).json({ error: "Incorrect password" })
-    }
-
-    res.json({ message: "Login successful", user })
-  } catch (error) {
-    console.error(error)
-    res.status(500).json({ error: "Internal server error" })
-  }
+  return res.status(200).json({ message: "Filen har laddats upp" })
 })
 
 app.listen(port, () => {
   console.log(`Server is running on port ${port}`)
 })
+
+database.connect()
+console.log(`Server is running on port ${port}`)
