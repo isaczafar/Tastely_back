@@ -8,6 +8,8 @@ import { Sequelize } from "sequelize"
 import cors from "cors"
 import session from "express-session"
 import multer from "multer"
+import path from "path"
+import fileUpload from "express-fileupload"
 
 declare module "express-session" {
   interface Session {
@@ -24,7 +26,19 @@ const port = process.env.PORT || 8080
 
 const database = new Database()
 
+const storage = multer.diskStorage({
+  destination: function (req, file, cb) {
+    cb(null, path.join(__dirname, "../frontend/public/uploads"))
+  },
+  filename: function (req, file, cb) {
+    cb(null, Date.now() + "-" + file.originalname)
+  },
+})
+
+const upload = multer({ storage: storage })
+
 app.use(express.json())
+app.use(cors())
 
 app.use(
   session({
@@ -33,10 +47,6 @@ app.use(
     saveUninitialized: true,
   })
 )
-
-app.get("/", (req, res) => {
-  res.send("Hello, World!")
-})
 
 app.post("/login", (req, res) => {
   const { username, password } = req.body
@@ -79,13 +89,6 @@ const sequelize = new Sequelize(process.env.DATABASEURL!, {
 initializeUploadModel(database)
 
 database.connect()
-
-app.use(express.json())
-app.use(cors())
-
-app.get("/", async (req, res) => {
-  res.send("Hello, World!")
-})
 
 app.get("/recipes", async (req, res) => {
   try {
@@ -144,18 +147,15 @@ app.get("/recipes/:id", async (req, res) => {
   }
 })
 
-// Register endpoint
 app.post("/register", async (req, res) => {
   try {
     const { name, email, password } = req.body
 
-    // Check if user already exists
     const existingUser = await User.findOne({ where: { email } })
     if (existingUser) {
       return res.status(409).json({ error: "User already exists" })
     }
 
-    // Create a new user
     const user = await User.create({ name, email, password })
 
     res.json(user)
@@ -165,32 +165,24 @@ app.post("/register", async (req, res) => {
   }
 })
 
-const storage = multer.diskStorage({
-  destination: function (req, file, cb) {
-    cb(null, "uploads/")
-  },
-  filename: function (req, file, cb) {
-    cb(null, Date.now() + "-" + file.originalname)
-  },
-})
-
-const upload = multer({ storage: storage })
-
 app.post("/upload", upload.single("file"), (req, res) => {
   if (!req.file) {
     return res.status(400).json({ error: "Ingen fil vald" })
   }
 
-  // Use the Upload model here if needed
   const uploadInstance = new Upload({ fileName: req.file.filename })
+  console.log("Filväg:", req.file.path)
   uploadInstance.save()
 
-  return res.status(200).json({ message: "Filen har laddats upp" })
+  const imageUrl = `${req.protocol}://${req.get("host")}/uploads/${
+    req.file.filename
+  }`
+  return res
+    .status(200)
+    .json({ fileName: req.file.filename, filePath: imageUrl })
 })
 
 app.listen(port, () => {
   console.log(`Server is running on port ${port}`)
 })
 
-database.connect()
-console.log(`Server is running on port ${port}`)
