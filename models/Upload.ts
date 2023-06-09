@@ -4,7 +4,7 @@ import { Database } from "../src/database"
 export class Upload extends Model {
   public filename!: string
   public path!: string
-  // Lägg till fler attribut för uppladdningstabellen
+  
 }
 
 export function initializeUploadModel(database: Database): void {
@@ -20,7 +20,7 @@ export function initializeUploadModel(database: Database): void {
         type: DataTypes.STRING,
         allowNull: false,
       },
-      // Lägg till fler attribut för uppladdningstabellen
+      
     },
     {
       sequelize,
