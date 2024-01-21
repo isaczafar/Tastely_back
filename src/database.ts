@@ -1,103 +1,48 @@
-import { Sequelize, Model, DataTypes } from 'sequelize';
-import { Recipe } from '../models/Recipe';
-import { User } from '../models/User';
+import type { Sequelize } from "sequelize";
+import config from "../config/db.config";
+import { sequelize } from "../models";
+class Database {
+    private sequelize: Sequelize;
+    private database: string;
+    private username: string;
+    private password: string;
+    private host: string;
+    private port: number;
+    private url: URL;
+    public roles: string[];
 
-export class Database {
-  private sequelize: Sequelize;
-
-  constructor() {
-    const url = new URL(process.env.DATABASEURL!);
-    const database = url.pathname.substr(1);
-    const username = url.username;
-    const password = url.password;
-    const host = url.hostname;
-    const port = parseInt(url.port);
-
-    this.sequelize = new Sequelize(database, username, password, {
-      dialect: 'postgres',
-      host,
-      port,
-      ssl: true,
-      dialectOptions: {
-        ssl: true,
-      },
-    });
-  }
-
-  async connect() {
-    try {
-      await this.sequelize.authenticate();
-      console.log('Connected to the database');
-
-      this.defineModels();
-
-      await this.sequelize.sync();
-      console.log('Models synced with the database');
-    } catch (error) {
-      console.error('Error connecting to the database', error);
+    constructor(sequelize: Sequelize) {
+        this.url = new URL(config.DATABASEURL!);
+        this.database = config.PGDATABASE!;
+        this.username = config.PGUSER!;
+        this.password = config.PGPASSWORD!;
+        this.host = config.PGHOST!;
+        this.port = parseInt(config.PGPORT!);
+        this.roles = ["user", "admin", "mod"];
+        this.sequelize = sequelize;
     }
-  }
-
-  private defineModels() {
-    Recipe.init(
-      {
-        id: {
-          type: DataTypes.INTEGER,
-          autoIncrement: true,
-          primaryKey: true,
-        },
-        name: {
-          type: DataTypes.STRING,
-          allowNull: false,
-        },
-        description: {
-          type: DataTypes.STRING,
-          allowNull: false,
-        },
-        ingredients: {
-          type: DataTypes.ARRAY(DataTypes.STRING),
-          allowNull: false,
-        },
-        instructions: {
-          type: DataTypes.ARRAY(DataTypes.STRING),
-          allowNull: false,
-        },
-      },
-      {
-        sequelize: this.sequelize,
-        modelName: 'Recipe',
-      }
-    );
-
-    User.init(
-      {
-        id: {
-          type: DataTypes.INTEGER,
-          autoIncrement: true,
-          primaryKey: true,
-        },
-        name: {
-          type: DataTypes.STRING,
-          allowNull: false,
-        },
-        email: {
-          type: DataTypes.STRING,
-          allowNull: false,
-          unique: true,
-        },
-        password: {
-          type: DataTypes.STRING,
-          allowNull: false,
-        },
-      },
-      {
-        sequelize: this.sequelize,
-        modelName: 'User',
-      }
-    );
-  }
-
-  getSequelizeInstance() {
-    return this.sequelize;
-  }
+    get getSequelize() {
+        return this.sequelize;
+    }
+    model(name: string) {
+        try {
+            let model = this.getSequelize.model(name);
+            return model;
+        } catch (err) {
+            console.error(err);
+            throw new Error("NO SUCH model");
+        }
+    }
+    async connect() {
+        try {
+            await this.sequelize.authenticate();
+            console.log("Connected to the database");
+            await this.sequelize.sync();
+            console.log("Models synced with the database");
+        } catch (error) {
+            console.error("Error connecting to the database", error);
+        }
+    }
 }
+const database = new Database(sequelize);
+export default database;
